@@ -1,5 +1,6 @@
 import Image from "next/image";
 import textLogo from "/public/Text.png"
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -8,7 +9,9 @@ export default function Home() {
         <h1 className="md:text-3xl text-2xl font-bold text-sky-500">Crowd Source</h1>
         <ul className="flex gap-3 md:gap-12">
           <li className="text-xl font-bold hover:text-purple-400 duration-300 cursor-pointer">Home</li>
+          <Link href={"/auth"}>
           <li className="text-xl font-bold hover:text-purple-400 duration-300 cursor-pointer">Sign In</li>
+          </Link>
           <li className="text-xl font-bold hover:text-purple-400 duration-300 cursor-pointer">About Me</li>
         </ul>
       </nav>
