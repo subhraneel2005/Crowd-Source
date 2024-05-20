@@ -6,7 +6,7 @@ import { db } from "@/firebase/config";
 import { useRouter } from "next/navigation";
 import { Popover } from "@/components/ui/popover";
 import { PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {useState} from "react"
+import {useState, useEffect} from "react"
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { addDoc, collection, deleteDoc, doc, getDocs, query, where } from "firebase/firestore";
@@ -41,6 +41,8 @@ export default function UserDashboard(){
     const [communityType, setCommunityType] = useState("");
     const [communityDonators, setCommunityDonators] = useState([]);
     const [communityStatus, setCommunityStatus] = useState("");
+    const [upiId, setUpiId] = useState("");
+    const [communities, setCommunities] = useState([]);
 
     const createNewCommunity = async(e) => {
         e.preventDefault();
@@ -75,6 +77,8 @@ export default function UserDashboard(){
             createdBy: user?.email
         }
 
+        communities.push(newCommunity);
+
         try {
             await addDoc(collection(db, "communities"), newCommunity);
             alert("Community created successfully");
@@ -86,6 +90,7 @@ export default function UserDashboard(){
         } catch (error) {
             console.log(error);
         }
+        setCommunities(communities);
         }
     }
 
@@ -97,16 +102,33 @@ export default function UserDashboard(){
         setCommunityImg("");
     }
 
-    const getUsersCommunity = async() => {
+    const getCurrentUsersCommunity = async() => {
+        if(!user){
+            return <h1>Loading...</h1>
+        }
+        const q = query(collection(db,"communities"),where("createdBy","==",user?.email));
 
+        try {
+            const querySnapshot = await getDocs(q);
+            const newCommunities = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data()}));
+            setCommunities(newCommunities);
+        } catch (error) {
+            console.log(error);
+        }  
     }
+
+    useEffect(() => {
+        getCurrentUsersCommunity();
+    },[])
+
+    
 
     if(!user){
         router.push("/auth");
     }
 
     return(
-    <div className="h-screen w-full flex">
+    <div className="min-h-screen w-full flex">
         <div className="block space-y-5">
         <div className="flex justify-between">
         <div className="bg-gradient-to-r from-lime-600 to-yellow-600 w-64 h-screen p-4 hidden md:block">
@@ -221,6 +243,26 @@ export default function UserDashboard(){
         </nav>
         </div>
         <h1 className="text-center text-2xl font-bold mt-7">Your Communities</h1>
+        {communities.length === 0 ? (<h1>Start by publishing your first community to the public!</h1>) : (
+            <div className="grid md:grid-cols-2 grid-cols-1 space-y-5 overflow-hidden ml-7">
+                {communities.map((c) => (
+                    <div key={c.title} className="card w-80 md:w-96  bg-base-100 shadow-xl">
+                    <figure><img src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.jpg" alt="Banner Image" /></figure>
+                    <div className="card-body">
+                      <h2 className="card-title">
+                        {c.title}
+                        <div className="badge badge-secondary">{c.type}</div>
+                      </h2>
+                      <p>{c.description}</p>
+                      <div className="card-actions justify-end">
+                        <p>Target: Rs {c.target}</p>
+                        <button className="btn btn-warning">Delete</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+        )}
         </div>
     </div>
     )
