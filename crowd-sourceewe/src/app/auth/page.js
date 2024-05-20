@@ -35,7 +35,7 @@ export default function AuthPage(){
 
     return(
         <div className="min-h-screen w-full flex justify-center items-center">
-            <button class="btn btn-active btn-primary" onClick={googleAuthHandler}>Sign in with Google</button>
+            <button className="btn btn-active btn-primary" onClick={googleAuthHandler}>Sign in with Google</button>
         </div>
     )
 }
