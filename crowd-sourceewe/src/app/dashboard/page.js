@@ -36,7 +36,7 @@ export default function UserDashboard(){
 
     const [communityTitle, setCommunityTitle] = useState("");
     const [communityDescription, setCommunityDescription] = useState("");
-    const [communityImg, setCommunityImg] = useState(null);
+    const [communityImg, setCommunityImg] = useState("");
     const [communityTarget, setCommunityTarget] = useState(null);
     const [communityType, setCommunityType] = useState("");
     const [communityDonators, setCommunityDonators] = useState([]);
@@ -54,17 +54,6 @@ export default function UserDashboard(){
         else{
             let imgUrl = "";
 
-        if (communityImg) {
-        try {
-            const storageRef = ref(storage, `community_images/${communityImg.name}`);
-            await uploadBytes(storageRef, communityImg);
-            imgUrl = await getDownloadURL(storageRef);
-        } catch (error) {
-            console.error("Error uploading image: ", error);
-            alert("Failed to upload image");
-            return;
-        }
-    }
 
         const newCommunity = {
             title: communityTitle,
@@ -73,8 +62,10 @@ export default function UserDashboard(){
             type: communityType,
             createdAt: currentDate,
             donators: communityDonators,
-            img: imgUrl,
-            createdBy: user?.email
+            img: communityImg,
+            createdBy: user?.email,
+            comId: Math.random().toString(36).substring(2),
+            upiId: upiId,
         }
 
         communities.push(newCommunity);
@@ -86,6 +77,8 @@ export default function UserDashboard(){
             setCommunityDescription("");
             setCommunityTarget("");
             setCommunityType("");
+            setUpiId("")
+            setCommunityImg("")
             // setCommunityImg(null);
         } catch (error) {
             console.log(error);
@@ -117,6 +110,31 @@ export default function UserDashboard(){
         }  
     }
 
+    const deleteCommunity = async (community) => {
+        try {
+            console.log("Deleting community:", community);
+    
+            // Find the document ID associated with the task
+            const querySnapshot = await getDocs(collection(db, "communities"));
+            const comDOc = querySnapshot.docs.find(doc => doc.data().title === community.title && doc.data().createdBy === community.createdBy);
+            const comId = comDOc?.id;
+    
+            if (!comId) {
+                console.error("Community not found in Firestore");
+                return;
+            }
+    
+            // Deleting the task from Firestore
+            await deleteDoc(doc(db, "communities", comId));
+    
+            // If the deletion is successful, update the local state
+            const updatedCommunities = communities.filter(c => c.comId !== community.comId);
+            setCommunities(updatedCommunities);
+        } catch (error) {
+            console.error("Error deleting community: ", error);
+        }
+    };
+
     useEffect(() => {
         getCurrentUsersCommunity();
     },[])
@@ -129,10 +147,9 @@ export default function UserDashboard(){
 
     return(
     <div className="min-h-screen w-full flex">
-        <div className="block space-y-5">
         <div className="flex justify-between">
         <div className="bg-gradient-to-r from-lime-600 to-yellow-600 w-64 h-screen p-4 hidden md:block">
-        <ul className="mt-6 space-y-5 font-bold">
+        <ul className="mt-2 space-y-5 font-bold">
           <Popover>
             <PopoverTrigger>
             <li className="text-white py-2 border-2 border-lime-100 rounded-xl cursor-pointer text-center hover:bg-lime-900 duration-500 px-6">Create Community</li>
@@ -143,6 +160,8 @@ export default function UserDashboard(){
                     <Textarea required value={communityDescription} onChange={(e) => setCommunityDescription(e.target.value)} placeholder="What is your community about..."/>
                     <Input required value={communityType} onChange={(e) => setCommunityType(e.target.value)} placeholder="Community Type"/>
                     <Input required value={communityTarget} onChange={(e) => setCommunityTarget(e.target.value)} placeholder="What is your contribution goal" type="number"/>
+                    <Input required value={upiId} onChange={(e) => setUpiId(e.target.value)} placeholder="Enter your UPI id to get future donations"/>
+                    <Input value={communityImg} onChange={(e) => setCommunityImg(e.target.value)} placeholder="Communities Image"/>
         
                     <div className="flex justify-between px-3">
                     <button className="btn btn-success"onClick={createNewCommunity}>Submit</button>
@@ -182,7 +201,40 @@ export default function UserDashboard(){
         </ul>
       </div>
       <div className="flex-1 p-4">
-        <h1 className="text-3xl font-bold">{user?.displayName} Dashboard</h1>
+        <div className="block space-y-7">
+            <h1 className="text-3xl font-bold">{user?.displayName} Dashboard</h1>
+            <h1 className="text-center text-2xl font-bold">Your Communities</h1>
+                {communities.length === 0 ? (<h1>Start by publishing your first community to the public!</h1>) : (
+            <div className="grid md:grid-cols-2 gap-14 grid-cols-1 space-y-5 md:ml-4 mt-10">
+                {communities.map((c) => (
+                    <div key={c.title} className="card w-80 md:w-96  bg-base-100 shadow-xl">
+                    <figure><img src={c.img} className="w-full p-3" alt="Banner Image" /></figure>
+                    <div className="card-body">
+                      <h2 className="card-title">
+                        {c.title}
+                        <div className="badge badge-secondary">{c.type}</div>
+                      </h2>
+                      <p>{c.description}</p>
+                      <div className="card-actions justify-end">
+                        <p className="text-lg text-green-300 font-bold">Target: Rs {c.target}</p>
+                        <p className="text-lg text-sky-300 font-bold">UPI Id: {c.upiId}</p>
+                        <Popover>
+                            <PopoverTrigger>
+                            <button className="btn btn-warning">Delete</button>
+                            </PopoverTrigger>
+                            <PopoverContent>
+                                <div className="block space-y-5">
+                                    <h1>Warning! This action is not reversible</h1>
+                                    <button className="btn btn-error" onClick={() => deleteCommunity(c)}>I understand, delete this community</button>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>)}
+        </div>
       </div>
       <nav className="top-8 py-6 px-4 right-6 block md:hidden">
             <Popover>
@@ -201,6 +253,8 @@ export default function UserDashboard(){
                     <Textarea required value={communityDescription} onChange={(e) => setCommunityDescription(e.target.value)} placeholder="What is your community about..."/>
                     <Input required value={communityType} onChange={(e) => setCommunityType(e.target.value)} placeholder="Community Type"/>
                     <Input required value={communityTarget} onChange={(e) => setCommunityTarget(e.target.value)} placeholder="What is your contribution goal" type="number"/>
+                    <Input required value={upiId} onChange={(e) => setUpiId(e.target.value)} placeholder="Enter your UPI id to get future donations"/>
+                    <Input value={communityImg} onChange={(e) => setCommunityImg(e.target.value)} placeholder="Communities Image"/>
         
                     <div className="flex justify-between px-3">
                     <button className="btn btn-success"onClick={createNewCommunity}>Submit</button>
@@ -242,28 +296,6 @@ export default function UserDashboard(){
             </Popover>
         </nav>
         </div>
-        <h1 className="text-center text-2xl font-bold mt-7">Your Communities</h1>
-        {communities.length === 0 ? (<h1>Start by publishing your first community to the public!</h1>) : (
-            <div className="grid md:grid-cols-2 grid-cols-1 space-y-5 overflow-hidden ml-7">
-                {communities.map((c) => (
-                    <div key={c.title} className="card w-80 md:w-96  bg-base-100 shadow-xl">
-                    <figure><img src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.jpg" alt="Banner Image" /></figure>
-                    <div className="card-body">
-                      <h2 className="card-title">
-                        {c.title}
-                        <div className="badge badge-secondary">{c.type}</div>
-                      </h2>
-                      <p>{c.description}</p>
-                      <div className="card-actions justify-end">
-                        <p>Target: Rs {c.target}</p>
-                        <button className="btn btn-warning">Delete</button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-            </div>
-        )}
         </div>
-    </div>
     )
 }

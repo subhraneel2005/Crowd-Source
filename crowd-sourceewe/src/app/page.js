@@ -19,7 +19,9 @@ export default function Home() {
           <div className="block space-y-6">
             <h1 className="text-center font-semibold md:text-[6vw] text-5xl">Welcome to Crowd Source 💵</h1>
             <div className="w-full h-full flex justify-center items-center">
+            <Link href={"/allCommunities"}>
             <button class="btn btn-accent">Explore Communities 🌸</button>
+            </Link>
             </div>
           </div>
         </div>
