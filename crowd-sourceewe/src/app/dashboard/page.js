@@ -205,7 +205,7 @@ export default function UserDashboard(){
             <h1 className="text-3xl font-bold">{user?.displayName} Dashboard</h1>
             <h1 className="text-center text-2xl font-bold">Your Communities</h1>
                 {communities.length === 0 ? (<h1>Start by publishing your first community to the public!</h1>) : (
-            <div className="grid md:grid-cols-2 gap-14 grid-cols-1 space-y-5 md:ml-4 mt-10">
+            <div className="grid md:grid-cols-2 gap-14 grid-cols-1 space-y-5 md:ml-4 ml-4 mt-10">
                 {communities.map((c) => (
                     <div key={c.title} className="card w-80 md:w-96  bg-base-100 shadow-xl">
                     <figure><img src={c.img} className="w-full p-3" alt="Banner Image" /></figure>

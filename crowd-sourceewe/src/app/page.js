@@ -6,13 +6,15 @@ export default function Home() {
   return (
     <div className="min-h-screen w-full text-purple-300">
       <nav className="top-0 left-0 w-full py-6 px-5 flex justify-between">
-        <h1 className="md:text-3xl text-2xl font-bold text-sky-500">Crowd Source</h1>
-        <ul className="flex gap-3 md:gap-12">
+        <h1 className="md:text-3xl md:flex hidden text-2xl font-bold text-sky-500">Crowd Source</h1>
+        <ul className="flex gap-7 md:gap-12">
           <li className="text-xl font-bold hover:text-purple-400 duration-300 cursor-pointer">Home</li>
           <Link href={"/auth"}>
-          <li className="text-xl font-bold hover:text-purple-400 duration-300 cursor-pointer">Sign In</li>
+          <li className="text-xl font-bold hover:text-purple-400 duration-300 cursor-pointer">Start Here</li>
           </Link>
+          <Link href={"https://linktr.ee/subhraneel"}>
           <li className="text-xl font-bold hover:text-purple-400 duration-300 cursor-pointer">About Me</li>
+          </Link>
         </ul>
       </nav>
         <div className="w-full min-h-screen flex justify-center items-center">
