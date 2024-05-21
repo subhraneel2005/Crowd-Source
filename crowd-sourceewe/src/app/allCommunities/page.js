@@ -8,6 +8,12 @@ import {useState, useEffect} from "react"
 export default function AllCommunities(){
 
     const [communities, setCommunities] = useState([]);
+    const [buttonText, setButtonText] = useState('Copy');
+
+    const copyUPI = () => {
+        navigator.clipboard.writeText('UPI ID');
+        setButtonText(!buttonText);
+    }
 
     const getAllCommunitites = async () => {
         const querySnapshot = await getDocs(collection(db, "communities"));
@@ -38,7 +44,26 @@ export default function AllCommunities(){
                         <p className="text-lg text-green-300 font-bold">Target: Rs {c.target}</p>
                         <p className="text-lg text-sky-300 font-bold">UPI Id: {c.upiId}</p>
                         <p className="text-lg text-green-300 font-bold">Created By: {c.createdBy}</p>
-                        <button className="btn btn-success">Donate 🪙</button>
+                        <Popover>
+                            <PopoverTrigger>
+                            <button className="btn btn-success">Donate 🪙</button>
+                            </PopoverTrigger>
+                            <PopoverContent>
+                                <div className="block space-y-4">
+                                    <h1 className="text-green-400 font-bold text-lg">Donate to this community by copying their UPI id below</h1>
+                                    <p className="text-lg">{c.upiId}</p>
+                                    <button className="btn btn-success"
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(c.upiId);
+                                        setButtonText("Copied");
+                                        setTimeout(() => {
+                                            setButtonText('Copy');
+                                          }, 1000);
+                                    }}
+                                    >{buttonText}</button>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
                       </div>
                     </div>
                   </div>
